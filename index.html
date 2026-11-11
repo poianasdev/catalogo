@@ -1,0 +1,98 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo LB Eletrônicos – análise Mercado Livre</title>
+<style>
+:root{--bg:#f1f4f3;--sf:#fff;--ink:#13221e;--mu:#5a6a65;--ln:#d9e1de;--br:#0e6a5b;--ok:#13813f;--wa:#a86a00;--ba:#be3a12;--wab:#fbeccd}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1614;--sf:#16211f;--ink:#e5eeeb;--mu:#93a5a0;--ln:#26352f;--br:#4fc2ad;--ok:#58d083;--wa:#e9b44c;--ba:#f0805c;--wab:#3a2d0d}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;background:var(--sf);border-bottom:1px solid var(--ln)}
+h1{font-size:17px;margin:0 8px 0 0}
+input,select,textarea,button{font:inherit;color:inherit;background:var(--sf);border:1px solid var(--ln);border-radius:6px;padding:6px 9px}
+#q{flex:1;min-width:180px;max-width:420px}button{cursor:pointer}:focus-visible{outline:2px solid var(--br);outline-offset:1px}
+.btn{display:inline-block;background:var(--br);color:var(--sf);padding:7px 12px;border-radius:6px;text-decoration:none;font-weight:600}
+.wrap{display:flex;gap:16px;padding:16px;max-width:1500px;margin:auto}
+nav{width:250px;flex:none;position:sticky;top:64px;align-self:flex-start;max-height:calc(100vh - 80px);overflow:auto}
+nav .ns button{display:flex;justify-content:space-between;gap:6px;width:100%;text-align:left;border:0;background:none;padding:6px 8px}
+nav .ns button.on{background:var(--br);color:var(--sf)}nav small{opacity:.7}
+.fl{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--ln)}.fl label{display:grid;gap:2px}.fl label:has(input[type=checkbox]){display:flex;gap:6px}
+main{flex:1;min-width:0}#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.c{background:var(--sf);border:1px solid var(--ln);border-left:4px solid var(--ln);border-radius:8px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.c.g{border-left-color:var(--ok)}.c.w{border-left-color:var(--wa)}.c.b{border-left-color:var(--ba)}
+.im{aspect-ratio:1;background:var(--bg);display:grid;place-items:center;position:relative;font-size:44px;color:var(--ln)}
+.im img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
+.bd{padding:8px 10px;display:flex;flex-direction:column;gap:4px;flex:1}
+.nm{font-weight:600;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mu{color:var(--mu);font-size:12px}.m{margin-top:auto;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.g .m,.ok{color:var(--ok)}.w .m{color:var(--wa)}.b .m,.ba{color:var(--ba)}
+.t{display:inline-block;font-size:11px;padding:1px 6px;border-radius:9px;border:1px solid var(--ln);margin-right:3px}.t.r{background:var(--wab);color:var(--wa)}
+dialog{border:1px solid var(--ln);border-radius:12px;background:var(--sf);color:var(--ink);padding:0;width:min(860px,96vw);max-height:92vh}dialog::backdrop{background:#0008}
+.dg{display:grid;grid-template-columns:260px 1fr;gap:16px;padding:16px}.dg .im{border-radius:8px;overflow:hidden}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.f label{display:grid;gap:2px;font-size:12px;color:var(--mu)}.f .w2{grid-column:1/-1}
+.rd label{margin-right:12px}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}td+td{text-align:right}
+@media(max-width:800px){.wrap{flex-direction:column}nav{width:100%;position:static;max-height:none}.ns{display:flex;flex-wrap:wrap;gap:4px}nav .ns button{width:auto;border:1px solid var(--ln)}.dg{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>Catálogo LB Eletrônicos</h1><input id=q type=search placeholder="Buscar por nome ou código" aria-label="Buscar"><select id=ord aria-label="Ordenar"><option value=nome>Nome A–Z<option value=menor>Menor custo<option value=maior>Maior custo<option value=margem>Maior margem</select><button id=cfgBtn>Taxas e backup</button><button id=csvBtn>Exportar CSV</button></header>
+<div class=wrap><nav><div id=ns class=ns></div><div class=fl><label>Status<select id=st><option value="">Todos<option value=pendente>Pendente<option value=analisando>Analisando<option value=viável>Viável<option value=descartado>Descartado</select></label><label><input type=checkbox id=ok> Só margem acima da meta</label><label><input type=checkbox id=risk> Esconder marca/risco ⚠</label></div></nav>
+<main><p id=info class=mu></p><div id=grid></div><p><button id=more>Mostrar mais</button></p></main></div>
+<dialog id=dlg></dialog><dialog id=cfg></dialog>
+<script src="data/products.js"></script>
+<script>
+const P=window.PRODUCTS,KEY='lbcat1',$=s=>document.querySelector(s);
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+let A={};try{A=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+const C=Object.assign({com:14,fixa:6,limite:79,imp:6,emb:1.5,meta:15},A._cfg);
+const save=()=>{A._cfg=C;try{localStorage.setItem(KEY,JSON.stringify(A))}catch(e){}};
+const S={n:'',q:'',st:'',risk:false,ok:false,ord:'nome',lim:60};let cur;
+P.forEach(p=>p._s=norm(p.nome+' '+(p.sku||'')));
+const nic=p=>(A[p.id]||{}).nicho||p.nicho;
+const cb=(p,a)=>a&&a.base==='caixa'&&p.caixa?p.caixa.unit:p.custo;
+const mlUrl=p=>'https://lista.mercadolivre.com.br/'+encodeURIComponent((p.busca||p.nome).replace(/[^\p{L}\p{N}\s.]/gu,' ').trim().replace(/\s+/g,'-'));
+function calc(p){const a=A[p.id]||{},pr=+a.preco;if(!pr)return null;const c=cb(p,a);
+ const mc=pr-c-pr*C.com/100-(pr<C.limite?C.fixa:0)-pr*C.imp/100-(+a.frete||0)-C.emb;return{mc,pct:mc/pr*100,c}}
+const cls=m=>!m?'':m.pct>=C.meta?'g':m.pct>=0?'w':'b';
+const card=p=>{const m=calc(p),a=A[p.id]||{};
+ return `<article class="c ${cls(m)}" data-id="${p.id}" tabindex=0><div class=im>${esc(nic(p)[0])}<img loading=lazy src="imagens/${p.id}.webp" alt="" onerror="this.remove()"></div><div class=bd><div class=nm>${esc(p.nome)}</div><div>${R(p.custo)}<span class=mu>/un</span></div><div class=mu>${p.tipo==='caixa'?'só caixa com '+p.caixa.qtd+' un ('+R(p.caixa.total)+')':p.caixa?'caixa: '+R(p.caixa.unit)+'/un (mín. '+p.caixa.qtd+')':'avulso'}</div><div>${p.marca||p.risco?'<span class="t r">⚠ '+(p.risco?'risco':'marca')+'</span>':''}${p.variantes?'<span class=t>'+p.variantes.length+' variações</span>':''}${a.status&&a.status!=='pendente'?'<span class=t>'+a.status+'</span>':''}</div><div class=m>${m?m.pct.toFixed(0)+'% <span class=mu>('+R(m.mc)+')</span>':'<span class=mu>sem análise</span>'}</div></div></article>`};
+function nav(){const c={};P.forEach(p=>c[nic(p)]=(c[nic(p)]||0)+1);
+ const ks=Object.keys(c).sort((a,b)=>a==='Outros'?1:b==='Outros'?-1:c[b]-c[a]);
+ $('#ns').innerHTML=[['','Todos',P.length],...ks.map(k=>[k,k,c[k]])].map(([k,l,n])=>`<button data-n="${esc(k)}" class="${S.n===k?'on':''}">${esc(l)} <small>${n}</small></button>`).join('')}
+function render(){const q=norm(S.q).split(' ').filter(Boolean);
+ const r=P.filter(p=>(!S.n||nic(p)===S.n)&&q.every(w=>p._s.includes(w))&&(!S.st||((A[p.id]||{}).status||'pendente')===S.st)&&(!S.risk||!(p.marca||p.risco))&&(!S.ok||((calc(p)||{}).pct>=C.meta)));
+ r.sort({nome:(a,b)=>a.nome.localeCompare(b.nome,'pt'),menor:(a,b)=>a.custo-b.custo,maior:(a,b)=>b.custo-a.custo,margem:(a,b)=>((calc(b)||{pct:-1e9}).pct)-((calc(a)||{pct:-1e9}).pct)}[S.ord]);
+ $('#info').textContent=r.length+' produtos'+(S.n?' em '+S.n:'');
+ $('#grid').innerHTML=r.slice(0,S.lim).map(card).join('')||'<p class=mu>Nenhum produto com esses filtros.</p>';
+ $('#more').hidden=r.length<=S.lim;$('#more').textContent='Mostrar mais ('+(r.length-S.lim)+')';nav()}
+function res(){const a=A[cur.id],m=calc(cur),pr=+a.preco||0,k=cb(cur,a)+(+a.frete||0)+C.emb,d=1-(C.com+C.imp+C.meta)/100;
+ const p1=(k+C.fixa)/d,min=d<=0?0:p1<C.limite?p1:Math.max(k/d,C.limite);
+ const L=m?[['Preço de venda',pr],['Custo do produto',-m.c],['Comissão ('+C.com+'%)',-pr*C.com/100],['Taxa fixa',-(pr<C.limite?C.fixa:0)],['Imposto ('+C.imp+'%)',-pr*C.imp/100],['Frete pago por você',-(+a.frete||0)],['Embalagem',-C.emb]]:[];
+ $('#res').innerHTML=(m?'<table>'+L.map(([l,v])=>`<tr><td>${l}<td>${R(v)}`).join('')+`</table><p class="m ${m.pct>=C.meta?'ok':m.pct>=0?'':'ba'}">Margem ${R(m.mc)} (${m.pct.toFixed(1)}%)</p>`:'<p class=mu>Informe o preço médio de venda para calcular a margem.</p>')+(d>0?`<p class=mu>Para margem de ${C.meta}%, venda a partir de ${R(min)}.</p>`:'')}
+function open(id){cur=P.find(x=>x.id===id);const p=cur,a=A[id]=A[id]||{};
+ const I=(k,l,x='step=.01 min=0')=>`<label>${l}<input data-k=${k} type=number ${x} value="${esc(a[k]??'')}"></label>`;
+ const L=(u,t)=>`<a href="${esc(u)}" target=_blank rel=noopener>${t}</a>`;
+ $('#dlg').innerHTML=`<form method=dialog style="text-align:right;padding:8px 12px 0"><button>Fechar</button></form><div class=dg><div class=im>${esc(nic(p)[0])}<img src="imagens/${id}.webp" alt="" onerror="this.remove()"></div><div><h2 style="margin:0 0 4px;font-size:17px">${esc(p.nome)}</h2><p class=mu>${p.sku?'Cód. '+esc(p.sku)+' – ':''}${L(p.url,'ver no fornecedor')}${p.caixa&&p.caixa.url!==p.url?' – '+L(p.caixa.url,'ver caixa fechada'):''}</p>${p.marca||p.risco?'<p class="t r">⚠ '+(p.risco?'Item de risco: provavelmente proibido no Mercado Livre.':'Cita marca registrada: confirme se é original, o Mercado Livre derruba réplicas.')+'</p>':''}<p><a class=btn href="${mlUrl(p)}" target=_blank rel=noopener>Buscar no Mercado Livre</a></p>
+ ${p.tipo==='ambos'?`<div class=rd>Custo base: <label><input type=radio name=b data-k=base value=avulso ${a.base!=='caixa'?'checked':''}> avulso ${R(p.custo)}</label><label><input type=radio name=b data-k=base value=caixa ${a.base==='caixa'?'checked':''}> caixa ${R(p.caixa.unit)} (mín. ${p.caixa.qtd})</label></div>`:''}
+ <div class=f>${I('preco','Preço médio de venda (R$)')}${I('vendas','Vendas por mês','step=1 min=0')}${I('conc','Nº de concorrentes','step=1 min=0')}${I('frete','Frete pago por você (R$)')}
+ <label>Status<select data-k=status>${['pendente','analisando','viável','descartado'].map(s=>`<option ${a.status===s?'selected':''}>${s}`).join('')}</select></label>
+ <label>Nicho<select data-k=nicho>${[...new Set(P.map(x=>x.nicho))].sort().map(s=>`<option ${nic(p)===s?'selected':''}>${esc(s)}`).join('')}</select></label>
+ <label class=w2>Anotações (logística dos vendedores, reputação, etc.)<textarea data-k=nota rows=3>${esc(a.nota||'')}</textarea></label></div><div id=res></div>
+ ${p.variantes?`<details><summary>${p.variantes.length} variações no fornecedor</summary>${p.variantes.map(v=>`<div class=mu>${L(v.url,esc(v.nome))}</div>`).join('')}</details>`:''}</div></div>`;
+ $('#dlg').showModal();res()}
+$('#dlg').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;A[cur.id][k]=e.target.value;save();res()});
+$('#dlg').addEventListener('close',render);
+const down=(n,t,ty)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:ty}));a.download=n;a.click()};
+$('#csvBtn').onclick=()=>{const f=v=>String(v??'').replace('.',','),rows=[['Nicho','Produto','Custo un','Preço ML','Vendas/mês','Concorrentes','Frete','Margem R$','Margem %','Status','Notas','Fornecedor','Busca ML']];
+ P.forEach(p=>{const a=A[p.id];if(!a||!(a.preco||a.vendas||a.conc||a.nota||(a.status&&a.status!=='pendente')))return;const m=calc(p);
+ rows.push([nic(p),p.nome,f(cb(p,a)),f(a.preco),f(a.vendas),f(a.conc),f(a.frete),m?f(m.mc.toFixed(2)):'',m?f(m.pct.toFixed(1)):'',a.status,a.nota,p.url,mlUrl(p)])});
+ down('analise-ml.csv','\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv')};
+$('#cfgBtn').onclick=()=>{const F=[['com','Comissão do Mercado Livre (%)'],['fixa','Taxa fixa por venda (R$)'],['limite','Taxa fixa vale abaixo de (R$)'],['imp','Imposto sobre a venda (%)'],['emb','Embalagem por unidade (R$)'],['meta','Margem mínima desejada (%)']];
+ $('#cfg').innerHTML=`<form method=dialog style="text-align:right;padding:8px 12px 0"><button>Fechar</button></form><div style="padding:0 16px 16px"><p class=mu>Valores iniciais de exemplo. Ajuste à sua categoria e tipo de anúncio e confira as tarifas atuais no Mercado Livre.</p><div class=f>${F.map(([k,l])=>`<label>${l}<input data-c=${k} type=number step=.01 value="${C[k]}"></label>`).join('')}</div><p class=mu>Suas análises ficam salvas só neste navegador. Faça backup de vez em quando.</p><button id=bk>Baixar backup (.json)</button> <label class=btn style="cursor:pointer">Restaurar backup<input id=rs type=file accept=.json hidden></label></div>`;
+ $('#cfg').showModal();$('#bk').onclick=()=>down('backup-catalogo.json',JSON.stringify(A),'application/json');
+ $('#rs').onchange=e=>{const r=new FileReader();r.onload=()=>{try{A=JSON.parse(r.result);Object.assign(C,A._cfg);save();render();$('#cfg').close()}catch(x){alert('Arquivo de backup inválido.')}};r.readAsText(e.target.files[0])}};
+$('#cfg').addEventListener('input',e=>{const k=e.target.dataset.c;if(k){C[k]=+e.target.value;save()}});$('#cfg').addEventListener('close',render);
+$('#grid').onclick=e=>{const c=e.target.closest('.c');if(c)open(c.dataset.id)};
+$('#grid').onkeydown=e=>{if(e.key==='Enter'){const c=e.target.closest('.c');if(c)open(c.dataset.id)}};
+$('#ns').onclick=e=>{const b=e.target.closest('button');if(b){S.n=b.dataset.n;S.lim=60;render()}};
+$('#q').oninput=e=>{S.q=e.target.value;S.lim=60;render()};
+$('#ord').onchange=e=>{S.ord=e.target.value;render()};$('#st').onchange=e=>{S.st=e.target.value;S.lim=60;render()};
+$('#ok').onchange=e=>{S.ok=e.target.checked;S.lim=60;render()};$('#risk').onchange=e=>{S.risk=e.target.checked;S.lim=60;render()};
+$('#more').onclick=()=>{S.lim+=60;render()};render();
+</script></body></html>
