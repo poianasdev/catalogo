@@ -1,9 +1,9 @@
-"""Baixa a foto original de cada produto (página do fornecedor) e salva em imagens/<id>.webp (até 800px).
+"""Baixa a foto original de cada produto (página do fornecedor) e salva em lote-XX/<id>.webp (até 800px, 100 fotos por pasta).
 Uso: pip install requests pillow  &&  python baixar_imagens.py   (pode interromper e rodar de novo: continua de onde parou)"""
 import io, json, pathlib, re, time, concurrent.futures as cf
 import requests
 from PIL import Image
-ROOT = pathlib.Path(__file__).parent; OUT = ROOT / "imagens"; OUT.mkdir(exist_ok=True)
+ROOT = pathlib.Path(__file__).parent
 P = json.loads((ROOT / "data/products.js").read_text(encoding="utf-8").split("=", 1)[1].strip().rstrip(";"))
 H = {"User-Agent": "Mozilla/5.0 (catalogo pessoal)"}
 def img_url(page):
@@ -13,7 +13,7 @@ def img_url(page):
     u = m.group(1).replace("&amp;", "&"); u = "https:" + u if u.startswith("//") else u
     return re.sub(r"([?&])width=\d+&?", r"\1", re.sub(r"_\d*x\d*(?=\.\w+)", "", u))  # tira sufixo de miniatura
 def run(p):
-    f = OUT / f"{p['id']}.webp"
+    f = ROOT / f"lote-{p['lote']}" / f"{p['id']}.webp"; f.parent.mkdir(exist_ok=True)
     if f.exists(): return None
     for t in range(3):
         try:

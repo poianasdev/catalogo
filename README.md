@@ -7,13 +7,13 @@ Abra `index.html` para usar (funciona direto no computador). Sem fotos ele funci
 pip install requests pillow
 python baixar_imagens.py
 ```
-Pega a foto original na página de cada produto e salva em `imagens/` (WebP, até 800px, ~40 KB cada). Pode interromper e rodar de novo. Os que falharem ficam em `falhas.txt`.
+Pega a foto original na página de cada produto e cria as pastas `lote-01`, `lote-02`... ao lado do `index.html`, com 100 fotos cada (WebP, até 800px, ~40 KB por foto). Pode interromper e rodar de novo. Os que falharem ficam em `falhas.txt`.
 
-## 2. Publicar grátis no GitHub Pages
-1. Crie uma conta e um repositório **público** (ex.: `catalogo`) no github.com.
-2. Envie a pasta inteira com o **GitHub Desktop** (ou `git add . && git commit -m catalogo && git push`). O upload pelo navegador limita a 100 arquivos por vez, então não serve para as ~2.200 fotos.
-3. No repositório: Settings > Pages > Branch `main`, pasta `/ (root)` > Save.
-4. Em ~1 minuto o site fica em `https://SEU-USUARIO.github.io/catalogo/`.
+## 2. Publicar grátis no GitHub Pages (só pelo navegador)
+1. Descompacte o .zip. Crie uma conta e um repositório **público** (ex.: `catalogo`) no github.com.
+2. Na página do repositório: **Add file > Upload files**. Arraste `index.html` e a pasta `data`. **Commit changes**.
+3. **Settings > Pages > Deploy from a branch > `main` / `(root)` > Save**. Em 1 a 2 minutos o site fica em `https://SEU-USUARIO.github.io/catalogo/`.
+4. Fotos: volte à página principal do repositório, **Add file > Upload files**, arraste **uma pasta `lote-XX`** e **Commit changes**. Repita para cada pasta. O GitHub aceita até 100 arquivos por envio, por isso cada pasta tem no máximo 100 fotos. Depois de cada envio o site leva cerca de 1 minuto para atualizar.
 
 Atenção: em repositório público, qualquer pessoa com o link pode ver seus custos e fornecedor.
 
